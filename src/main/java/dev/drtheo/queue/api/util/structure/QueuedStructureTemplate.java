@@ -42,15 +42,21 @@ public class QueuedStructureTemplate {
     private final List<StructureTemplate.PalettedBlockInfoList> blockInfoLists;
     private final List<StructureTemplate.StructureEntityInfo> entities;
     private final Vec3i size;
+    public final int maxTime;
 
-    public QueuedStructureTemplate(StructureTemplate template) {
-        this((StructureTemplateAccessor) template);
+    public QueuedStructureTemplate(StructureTemplate template, int maxTime) {
+        this((StructureTemplateAccessor) template, maxTime);
     }
 
-    private QueuedStructureTemplate(StructureTemplateAccessor accessor) {
+    public QueuedStructureTemplate(StructureTemplate template) {
+        this(template, 20);
+    }
+
+    private QueuedStructureTemplate(StructureTemplateAccessor accessor, int maxTime) {
         this.blockInfoLists = accessor.getBlockInfo();
         this.entities = accessor.getEntities();
         this.size = accessor.getSize();
+        this.maxTime = maxTime;
     }
 
     public Optional<ActionQueue> place(ServerWorldAccess world, BlockPos pos, BlockPos pivot, StructurePlacementData placementData, Random random, int flags) {
@@ -134,7 +140,7 @@ public class QueuedStructureTemplate {
 
             flowingFluid.add(blockPos);
             return false;
-        }, TaskStage.startWorldTick(world.toServerWorld()), TimeUnit.TICKS, 1, 20)
+        }, TaskStage.startWorldTick(world.toServerWorld()), TimeUnit.TICKS, 1, maxTime)
                 .thenRun(() -> {
                     // !
                     this.fillWithFluid(world, flowingFluid, stillFluid);
